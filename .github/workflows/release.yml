@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # 改这里：用免签的 Debug 构建代替原来的 build-manager.yml
   build-manager:
     runs-on: ubuntu-latest
     steps:
@@ -21,19 +20,19 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # 直接构建 Debug 包，跳过所有签名/重打包逻辑
-      - name: Build Debug APK
-        run: ./gradlew :manager:assembleDebug
+      - name: Give execute permission to Gradle wrapper
+        run: chmod +x gradlew
 
-      # 上传构建产物，和原来的 artifacts 路径保持一致
-      - name: Upload Manager APK
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Find and upload APK
         uses: actions/upload-artifact@v4
         with:
           name: manager
-          path: manager/build/outputs/apk/debug/*.apk
+          path: ./**/build/outputs/apk/debug/*.apk
           retention-days: 7
 
-  # 下面的 release 流程完全不动，和你原来的一样
   release:
     needs:
       - build-manager
